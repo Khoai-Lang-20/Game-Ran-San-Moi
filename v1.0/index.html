@@ -2,353 +2,36 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Game Rắn Săn Mồi v1.0 - Cổ Điển</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      touch-action: manipulation;
-      font-family: 'Segoe UI', Roboto, sans-serif;
-    }
-
-    body {
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 10px;
-      color: #fff;
-    }
-
-    .game-container {
-      background: #0f172a;
-      padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      width: 100%;
-      max-width: 360px;
-      text-align: center;
-    }
-
-    h1 {
-      margin: 0 0 10px 0;
-      font-size: 1.5rem;
-      color: #4ade80;
-    }
-
-    .score-board {
-      display: flex;
-      justify-content: space-around;
-      background: #1e293b;
-      padding: 8px 12px;
-      border-radius: 10px;
-      margin-bottom: 12px;
-      font-weight: bold;
-      font-size: 0.95rem;
-    }
-
-    canvas {
-      background-color: #020617;
-      border: 3px solid #334155;
-      border-radius: 10px;
-      display: block;
-      margin: 0 auto 15px auto;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-    }
-
-    /* Bàn phím ảo điều khiển cho Điện thoại */
-    .controls {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 50px);
-      gap: 8px;
-      max-width: 220px;
-      margin: 0 auto 10px auto;
-    }
-
-    .btn-ctrl {
-      background: #334155;
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      font-size: 1.3rem;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 4px 0 #1e293b;
-      transition: active 0.1s;
-    }
-
-    .btn-ctrl:active {
-      transform: translateY(4px);
-      box-shadow: none;
-      background: #475569;
-    }
-
-    .btn-up { grid-column: 2; grid-row: 1; }
-    .btn-left { grid-column: 1; grid-row: 2; }
-    .btn-right { grid-column: 3; grid-row: 2; }
-    .btn-down { grid-column: 2; grid-row: 3; }
-
-    .btn-restart {
-      width: 100%;
-      padding: 12px;
-      background: #22c55e;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 5px;
-    }
-
-    .btn-restart:hover {
-      background: #16a34a;
-    }
-
-    .game-over-text {
-      color: #ef4444;
-      font-weight: bold;
-      margin-bottom: 10px;
-      font-size: 1rem;
-      min-height: 24px;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <div class="game-container">
+  <div class="container">
     <h1>🐍 Rắn Săn Mồi v1.0</h1>
     
     <div class="score-board">
-      <span>Điểm: <strong id="score" style="color: #4ade80;">0</strong></span>
-      <span>Độ dài: <strong id="length" style="color: #38bdf8;">3</strong></span>
+      <span>Điểm số: <strong id="score">0</strong></span>
     </div>
 
-    <!-- Màn chơi Canvas 300x300 (15x15 ô, mỗi ô 20px) -->
+    <!-- Màn hình game Canvas -->
     <canvas id="gameCanvas" width="300" height="300"></canvas>
 
-    <div id="game-status" class="game-over-text">Dùng nút bên dưới để di chuyển!</div>
+    <p class="instruction">Dùng các phím **Mũi Tên** (trên máy tính) hoặc bấm nút bên dưới (trên điện thoại) để điều khiển rắn!</p>
 
-    <!-- Nút điều hướng ảo -->
-    <div class="controls">
-      <button class="btn-ctrl btn-up" id="btn-up">⬆️</button>
-      <button class="btn-ctrl btn-left" id="btn-left">⬅️</button>
-      <button class="btn-ctrl btn-right" id="btn-right">➡️</button>
-      <button class="btn-ctrl btn-down" id="btn-down">⬇️</button>
+    <!-- Nút điều khiển cho điện thoại -->
+    <div class="controls-dpad">
+      <button id="btn-up" class="btn-arrow">⬆️</button>
+      <div class="horizontal-btns">
+        <button id="btn-left" class="btn-arrow">⬅️</button>
+        <button id="btn-down" class="btn-arrow">⬇️</button>
+        <button id="btn-right" class="btn-arrow">➡️</button>
+      </div>
     </div>
 
-    <button id="restart-btn" class="btn-restart hidden">Chơi ván mới 🔄</button>
+    <button id="restart-btn" class="btn-main">Chơi ván mới 🔄</button>
   </div>
 
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    const gridSize = 20; // Kích thước mỗi ô 20px
-    const tileCount = canvas.width / gridSize; // 15 ô ngang / dọc
-
-    let snake = [
-      { x: 7, y: 7 },
-      { x: 6, y: 7 },
-      { x: 5, y: 7 }
-    ];
-
-    let food = { x: 10, y: 10 };
-    let dx = 1; // Hướng di chuyển x (1: Phải, -1: Trái)
-    let dy = 0; // Hướng di chuyển y (1: Xuống, -1: Lên)
-
-    let score = 0;
-    let gameInterval = null;
-    let isGameOver = false;
-    let changingDirection = false; // Tránh đổi hướng 2 lần trong 1 khung hình
-
-    const scoreDisplay = document.getElementById('score');
-    const lengthDisplay = document.getElementById('length');
-    const statusDisplay = document.getElementById('game-status');
-    const restartBtn = document.getElementById('restart-btn');
-
-    // Sự kiện bàn phím máy tính
-    document.addEventListener('keydown', handleKeyPress);
-
-    // Sự kiện nút điều hướng di động
-    document.getElementById('btn-up').addEventListener('click', () => changeDirection(0, -1));
-    document.getElementById('btn-down').addEventListener('click', () => changeDirection(0, 1));
-    document.getElementById('btn-left').addEventListener('click', () => changeDirection(-1, 0));
-    document.getElementById('btn-right').addEventListener('click', () => changeDirection(1, 0));
-
-    restartBtn.addEventListener('click', resetGame);
-
-    // Khởi chạy game
-    resetGame();
-
-    function resetGame() {
-      snake = [
-        { x: 7, y: 7 },
-        { x: 6, y: 7 },
-        { x: 5, y: 7 }
-      ];
-      dx = 1;
-      dy = 0;
-      score = 0;
-      isGameOver = false;
-      changingDirection = false;
-
-      scoreDisplay.textContent = score;
-      lengthDisplay.textContent = snake.length;
-      statusDisplay.textContent = "Chúc bạn chơi vui vẻ!";
-      statusDisplay.style.color = "#4ade80";
-      restartBtn.classList.add('hidden');
-
-      spawnFood();
-
-      clearInterval(gameInterval);
-      gameInterval = setInterval(gameLoop, 150); // Tốc độ chạy (150ms/bước)
-    }
-
-    function gameLoop() {
-      if (isGameOver) return;
-
-      changingDirection = false;
-      moveSnake();
-
-      if (checkCollision()) {
-        handleGameOver();
-        return;
-      }
-
-      drawGame();
-    }
-
-    function moveSnake() {
-      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-      snake.unshift(head);
-
-      // Kiểm tra rắn ăn mồi
-      if (head.x === food.x && head.y === food.y) {
-        score += 10;
-        scoreDisplay.textContent = score;
-        lengthDisplay.textContent = snake.length;
-        spawnFood();
-      } else {
-        snake.pop(); // Xóa cái đuôi nếu không ăn mồi
-      }
-    }
-
-    function changeDirection(newDx, newDy) {
-      if (changingDirection || isGameOver) return;
-
-      // Không cho phép quay đầu 180 độ
-      if (newDx === -dx && newDx !== 0) return;
-      if (newDy === -dy && newDy !== 0) return;
-
-      dx = newDx;
-      dy = newDy;
-      changingDirection = true;
-    }
-
-    function handleKeyPress(e) {
-      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') changeDirection(0, -1);
-      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') changeDirection(0, 1);
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') changeDirection(-1, 0);
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') changeDirection(1, 0);
-    }
-
-    function spawnFood() {
-      while (true) {
-        food.x = Math.floor(Math.random() * tileCount);
-        food.y = Math.floor(Math.random() * tileCount);
-
-        // Đảm bảo mồi không mọc trên thân rắn
-        let onSnake = snake.some(segment => segment.x === food.x && segment.y === food.y);
-        if (!onSnake) break;
-      }
-    }
-
-    function checkCollision() {
-      const head = snake[0];
-
-      // Va chạm tường
-      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
-        return true;
-      }
-
-      // Va chạm thân
-      for (let i = 1; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-    function handleGameOver() {
-      isGameOver = true;
-      clearInterval(gameInterval);
-      statusDisplay.textContent = "💥 GAME OVER! Bạn đã thua rồi!";
-      statusDisplay.style.color = "#ef4444";
-      restartBtn.classList.remove('hidden');
-    }
-
-    function drawGame() {
-      // Xóa màn hình
-      ctx.fillStyle = '#020617';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Vẽ lưới mờ trang trí
-      ctx.strokeStyle = '#1e293b';
-      for (let i = 0; i < canvas.width; i += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, canvas.height);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(canvas.width, i);
-        ctx.stroke();
-      }
-
-      // Vẽ Mồi (Màu đỏ hình tròn)
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(
-        food.x * gridSize + gridSize / 2,
-        food.y * gridSize + gridSize / 2,
-        gridSize / 2 - 2,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-
-      // Vẽ Rắn
-      snake.forEach((segment, index) => {
-        if (index === 0) {
-          // Đầu rắn (Xanh lá sáng)
-          ctx.fillStyle = '#22c55e';
-        } else {
-          // Thân rắn (Xanh lá dịu)
-          ctx.fillStyle = '#4ade80';
-        }
-
-        ctx.fillRect(
-          segment.x * gridSize + 1,
-          segment.y * gridSize + 1,
-          gridSize - 2,
-          gridSize - 2
-        );
-      });
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
