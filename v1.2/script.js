@@ -1,9 +1,9 @@
 const loseMessages = [
-  "💥 Thua rồi! Tay nhanh hơn não rồi bạn ơi!",
-  "🐔 Gà quá! Đâm ngay vào vật cản thế kia!",
-  "🙈 Thôi xong! Chú rắn đã "hi sinh" một cách vô cùng lãng xẹt!",
+  "💥 Thua rồi! Tay nhanh hơn lão rồi bạn ơi!",
+  "🐔 Gà quá! Đâm ngay vào tường/chướng ngại vật thế kia!",
+  "🙈 Thôi xong! Chú rắn đã 'hi sinh' một cách vô cùng lãng xẹt!",
   "📉 Chưa đủ trình rồi! Về luyện thêm phản xạ đi nhé!",
-  "🧱 Đâm đầu vào chướng ngại vật đau không bạn ơi?"
+  "🧱 Đâm đầu vào tường đau không bạn ơi?"
 ];
 
 const canvas = document.getElementById('gameCanvas');
@@ -29,12 +29,12 @@ const tileCount = canvas.width / gridSize;
 
 let snake = [];
 let food = { x: 0, y: 0 };
-let obstacles = []; // Danh sách vật cản ngẫu nhiên
+let obstacles = []; // Danh sách vật cản ngẫu nhiên cho Map 3
 let dx = 1;
 let dy = 0;
 let score = 0;
 
-let selectedMap = 'borderless';
+let selectedMap = 'classic';
 let initialSpeed = 120;
 let currentSpeed = 120;
 let isGameOver = false;
@@ -88,11 +88,14 @@ function startGame() {
   messageBox.classList.add('hidden');
   restartBtn.classList.add('hidden');
 
-  if (selectedMap === 'borderless') {
+  if (selectedMap === 'classic') {
+    mapNameDisplay.textContent = "🧱 Map Cổ Điển";
+    obstacles = [];
+  } else if (selectedMap === 'borderless') {
     mapNameDisplay.textContent = "🌀 Map Xuyên Tường";
     obstacles = [];
   } else {
-    mapNameDisplay.textContent = "🧱 Map Chướng Ngại Vật";
+    mapNameDisplay.textContent = "🚧 Map Chướng Ngại Vật";
     generateObstacles(8); // Tạo ngẫu nhiên 8 ô chướng ngại vật
   }
 
@@ -136,7 +139,6 @@ function generateObstacles(count) {
     let obsX = Math.floor(Math.random() * tileCount);
     let obsY = Math.floor(Math.random() * tileCount);
 
-    // Tránh vị trí xuất hiện ban đầu của rắn
     let onSnake = snake.some(p => p.x === obsX && p.y === obsY);
     let nearStart = obsX >= 5 && obsX <= 15 && obsY === 10;
 
@@ -150,7 +152,6 @@ function drawObstacles() {
   ctx.fillStyle = '#64748b'; // Màu xám chướng ngại vật
   obstacles.forEach(obs => {
     ctx.fillRect(obs.x * gridSize + 1, obs.y * gridSize + 1, gridSize - 2, gridSize - 2);
-    // Viền đậm hơn chút
     ctx.strokeStyle = '#334155';
     ctx.strokeRect(obs.x * gridSize + 1, obs.y * gridSize + 1, gridSize - 2, gridSize - 2);
   });
@@ -195,7 +196,7 @@ function moveSnake() {
   let headX = snake[0].x + dx;
   let headY = snake[0].y + dy;
 
-  // Xử lý cơ chế Map 1: Đi Xuyên Tường
+  // Xử lý cơ chế Map 2: Đi Xuyên Tường
   if (selectedMap === 'borderless') {
     if (headX < 0) headX = tileCount - 1;
     if (headX >= tileCount) headX = 0;
@@ -244,14 +245,16 @@ function drawFood() {
 function checkCollision() {
   const head = snake[0];
 
-  // Va chạm tường (nếu ở Map chướng ngại vật)
-  if (selectedMap === 'obstacles') {
+  // Va chạm tường (Map Cổ Điển và Map Chướng Ngại Vật)
+  if (selectedMap === 'classic' || selectedMap === 'obstacles') {
     if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
       gameOver();
       return;
     }
+  }
 
-    // Va chạm chướng ngại vật
+  // Va chạm chướng ngại vật (Chỉ có ở Map 3)
+  if (selectedMap === 'obstacles') {
     for (let obs of obstacles) {
       if (head.x === obs.x && head.y === obs.y) {
         gameOver();
@@ -260,7 +263,7 @@ function checkCollision() {
     }
   }
 
-  // Va chạm thân rắn
+  // Va chạm thân rắn (Áp dụng cho cả 3 map)
   for (let i = 1; i < snake.length; i++) {
     if (head.x === snake[i].x && head.y === snake[i].y) {
       gameOver();
