@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Rắn Săn Mồi v1.1 - Pro Tròn & Tăng Tốc</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🐍 Rắn Săn Mồi v1.1</h1>
+    
+    <div class="score-board">
+      <span>Điểm số: <strong id="score">0</strong></span>
+      <span>Tốc độ: <strong id="speed-level">1.0</strong>x</span>
+    </div>
+
+    <!-- Màn hình game Canvas -->
+    <canvas id="gameCanvas" width="300" height="300"></canvas>
+
+    <p class="instruction">Dùng các phím **Mũi Tên** hoặc bấm nút bên dưới để điều khiển!</p>
+
+    <!-- Nút điều khiển cảm ứng cho di động -->
+    <div class="controls-dpad">
+      <button id="btn-up" class="btn-arrow">⬆️</button>
+      <div class="horizontal-btns">
+        <button id="btn-left" class="btn-arrow">⬅️</button>
+        <button id="btn-down" class="btn-arrow">⬇️</button>
+        <button id="btn-right" class="btn-arrow">➡️</button>
+      </div>
+    </div>
+
+    <button id="restart-btn" class="btn-main">Chơi ván mới 🔄</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
